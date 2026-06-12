@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loto — stats & grilles</title>
+  <meta name="description" content="Statistiques descriptives Loto® (FDJ) et tirage de grilles — sans prétention prédictive.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Données FDJ · historique descriptif</p>
+      <h1>Loto — tableau de bord</h1>
+      <p class="lead">
+        Visualisation du passé et tirage de grilles. Les graphiques décrivent l’historique ;
+        ils n’indiquent pas les prochains tirages.
+      </p>
+      <p id="meta" class="meta">Chargement…</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="cards" id="summary"></section>
+
+    <section class="panel">
+      <h2>Grille pour le prochain tirage</h2>
+      <p class="hint">
+        Choisis un mode pour fixer tes 5 numéros + N° Chance. Reviens chaque semaine avant le tirage.
+      </p>
+      <div class="controls">
+        <label>
+          N° Chance
+          <select id="chance-mode">
+            <option value="random">Tirage au hasard (1–10)</option>
+            <option value="empirique">Fixer le plus fréquent (pédagogique)</option>
+          </select>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" id="btn-pedago" class="btn primary">Grille pédagogique (tirage réel du passé)</button>
+        <button type="button" id="btn-random" class="btn">Grille 100&nbsp;% hasard</button>
+      </div>
+      <div id="grille-out" class="grille" hidden>
+        <p class="grille-label">Ta combinaison</p>
+        <div id="grille-balls" class="balls"></div>
+        <p id="grille-chance" class="chance"></p>
+      </div>
+    </section>
+
+    <section class="panel two-col">
+      <div>
+        <h2>Fréquences des boules (1–49)</h2>
+        <canvas id="chart-balls" height="280"></canvas>
+      </div>
+      <div>
+        <h2>N° Chance (1–10)</h2>
+        <canvas id="chart-chance" height="280"></canvas>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Numéros « chauds » & retards</h2>
+      <div id="hot-retard"></div>
+    </section>
+
+    <footer class="disclaimer">
+      <p id="disclaimer-text"></p>
+      <p>
+        Code source privé · page publique générée automatiquement depuis les archives CSV FDJ.
+        Probabilités officielles : fdj.fr
+      </p>
+    </footer>
+  </main>
+</body>
+</html>
