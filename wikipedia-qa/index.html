@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Wikipedia Android · QA Assessment — Accès protégé</title>
+<style>html,body{margin:0;min-height:100%;font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;color:#17243b;background:#f2f6fc}*{box-sizing:border-box}body{display:grid;place-items:center}.access{background:white;box-shadow:0 20px 70px #18294316;border:1px solid #dae3ee;border-radius:24px;max-width:470px;width:calc(100% - 32px);padding:38px}.eyebrow{text-transform:uppercase;font-size:12px;font-weight:800;letter-spacing:.15em;color:#2858b9}.access h1{font-size:30px;line-height:1.1;margin:15px 0 12px}.access p{color:#596a80}label{display:block;margin:22px 0 9px;font-weight:650}input{padding:13px 15px;border:1px solid #a6b4cb;border-radius:12px;width:100%;font:inherit}button{font:inherit;cursor:pointer;background:#1849ad;color:white;border:0;padding:13px 20px;border-radius:12px;font-weight:700;width:100%;margin-top:15px}button:disabled{opacity:.7;cursor:wait}.note{font-size:13px;color:#64748b}.error{color:#b42318 !important;min-height:18px;font-size:14px}.access[hidden],#viewer[hidden]{display:none !important}#viewer{width:100vw;height:100dvh;display:block;border:0}#loading{display:none}button:disabled+#loading{display:block}</style></head>
+<body><section class="access" id="auth"><div class="eyebrow">Private QA report · Wikipedia Android Alpha</div><h1>Accès au rapport</h1><p>Ce rapport, ses captures, sa vidéo et le code source sont chiffrés. Saisissez le mot de passe transmis séparément.</p><form id="form" autocomplete="off"><label for="pass">Mot de passe</label><input type="password" id="pass" autocomplete="off" required autofocus><button id="unlock" type="submit">Ouvrir le rapport</button><p id="loading" role="status">Déchiffrement en cours…</p><p class="error" id="error" role="alert"></p></form><p class="note">Aucune donnée de connexion n'est envoyée à un serveur : le déchiffrement s'effectue dans votre navigateur. Recharger la page reverrouille le contenu.</p></section><iframe id="viewer" title="Wikipedia QA Assessment" sandbox="allow-downloads" referrerpolicy="no-referrer" hidden></iframe>
+<script>
+const ITERATIONS=650000;
+const SALT=Uint8Array.from(atob('dkhnhHx6z3Mob2yBXIhPSQ=='),c=>c.charCodeAt(0));
+const IV=Uint8Array.from(atob('dlfTOFox949pmS8I'),c=>c.charCodeAt(0));
+const CONTEXT=new TextEncoder().encode('wikipedia-qa-report-v1');
+const form=document.getElementById('form');
+form.addEventListener('submit',async event=>{
+ event.preventDefault();
+ const input=document.getElementById('pass'),button=document.getElementById('unlock'),error=document.getElementById('error');
+ let pass=input.value;
+ input.value='';button.disabled=true;error.textContent='';
+ try {
+  if(!crypto?.subtle || typeof DecompressionStream==='undefined')throw new Error('Ce navigateur ne permet pas le déchiffrement du rapport.');
+  const baseKey=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  pass='';
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:SALT,iterations:ITERATIONS},baseKey,{name:'AES-GCM',length:256},false,['decrypt']);
+  const response=await fetch('report.enc',{cache:'no-store'});
+  if(!response.ok)throw new Error('Impossible de charger le rapport chiffré.');
+  const ciphertext=await response.arrayBuffer();
+  const compressed=await crypto.subtle.decrypt({name:'AES-GCM',iv:IV,additionalData:CONTEXT},key,ciphertext);
+  const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const html=await new Response(stream).text();
+  const frame=document.getElementById('viewer');
+  frame.srcdoc=html;document.getElementById('auth').hidden=true;frame.hidden=false;
+  document.body.style.display='block';document.body.style.background='white';
+ } catch(e){
+  error.textContent=e.name==='OperationError'?'Mot de passe incorrect.':(e.message||'Déchiffrement impossible.');
+ }finally{pass='';button.disabled=false;}
+});
+</script></body></html>
