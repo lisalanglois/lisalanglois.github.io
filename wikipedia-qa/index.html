@@ -4,8 +4,8 @@
 <body><section class="access" id="auth"><div class="eyebrow">Private QA report · Wikipedia Android Alpha</div><h1>Accès au rapport</h1><p>Ce rapport, ses captures, sa vidéo et le code source sont chiffrés. Saisissez le mot de passe transmis séparément.</p><form id="form" autocomplete="off"><label for="pass">Mot de passe</label><input type="password" id="pass" autocomplete="off" required autofocus><button id="unlock" type="submit">Ouvrir le rapport</button><p id="loading" role="status">Déchiffrement en cours…</p><p class="error" id="error" role="alert"></p></form><p class="note">Aucune donnée de connexion n'est envoyée à un serveur : le déchiffrement s'effectue dans votre navigateur. Recharger la page reverrouille le contenu.</p></section><iframe id="viewer" title="Wikipedia QA Assessment" sandbox="allow-downloads" referrerpolicy="no-referrer" hidden></iframe>
 <script>
 const ITERATIONS=650000;
-const SALT=Uint8Array.from(atob('dkhnhHx6z3Mob2yBXIhPSQ=='),c=>c.charCodeAt(0));
-const IV=Uint8Array.from(atob('dlfTOFox949pmS8I'),c=>c.charCodeAt(0));
+const SALT=Uint8Array.from(atob('IlEG3cYZHxqO2DMWl2EvHg=='),c=>c.charCodeAt(0));
+const IV=Uint8Array.from(atob('aZMJ7qRpnsN696AY'),c=>c.charCodeAt(0));
 const CONTEXT=new TextEncoder().encode('wikipedia-qa-report-v1');
 const form=document.getElementById('form');
 form.addEventListener('submit',async event=>{
