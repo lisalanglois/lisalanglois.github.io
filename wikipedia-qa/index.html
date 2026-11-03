@@ -41,7 +41,7 @@ body{display:grid;place-items:center;padding:24px;background:radial-gradient(cir
 <p class="error" id="error" role="alert"></p>
 </form>
 </section>
-<iframe id="viewer" title="Wikipedia QA Assessment" sandbox="allow-downloads" referrerpolicy="no-referrer" hidden></iframe>
+<iframe id="viewer" title="Wikipedia QA Assessment" sandbox="allow-downloads allow-same-origin" referrerpolicy="no-referrer" hidden></iframe>
 <script>
 const ITERATIONS=650000;
 const SALT=Uint8Array.from(atob('IlEG3cYZHxqO2DMWl2EvHg=='),c=>c.charCodeAt(0));
@@ -63,7 +63,24 @@ form.addEventListener('submit',async event=>{
   const ciphertext=await response.arrayBuffer();
   const compressed=await crypto.subtle.decrypt({name:'AES-GCM',iv:IV,additionalData:CONTEXT},key,ciphertext);
   const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
-  const html=await new Response(stream).text();
+  let html=await new Response(stream).text();
+  // Some mobile browsers cannot play MP4 content from a large data: URL.
+  // Convert the encrypted media and source ZIPs to temporary local blob: URLs
+  // after successful password-based decryption, never exposing them publicly.
+  function temporaryFile(mime,encoded){
+    const raw=atob(encoded), bytes=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes],{type:mime}));
+  }
+  let convertedVideos=0;
+  html=html.replace(/src="data:video\/mp4;base64,([A-Za-z0-9+/=]+)"/g,(_,encoded)=>{
+    convertedVideos++;
+    return 'src="'+temporaryFile('video/mp4',encoded)+'"';
+  });
+  html=html.replace(/href="data:application\/zip;base64,([A-Za-z0-9+/=]+)"/g,(_,encoded)=>{
+    return 'href="'+temporaryFile('application/zip',encoded)+'"';
+  });
+  if(convertedVideos!==1)throw new Error('Vidéo indisponible dans le rapport protégé.');
   const frame=document.getElementById('viewer');
   frame.srcdoc=html;document.getElementById('auth').hidden=true;frame.hidden=false;
   document.body.style.display='block';document.body.style.background='white';
