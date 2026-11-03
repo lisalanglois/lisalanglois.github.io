@@ -44,8 +44,8 @@ body{display:grid;place-items:center;padding:24px;background:radial-gradient(cir
 <iframe id="viewer" title="Wikipedia QA Assessment" sandbox="allow-downloads allow-same-origin" referrerpolicy="no-referrer" hidden></iframe>
 <script>
 const ITERATIONS=650000;
-const SALT=Uint8Array.from(atob('IlEG3cYZHxqO2DMWl2EvHg=='),c=>c.charCodeAt(0));
-const IV=Uint8Array.from(atob('aZMJ7qRpnsN696AY'),c=>c.charCodeAt(0));
+const SALT=Uint8Array.from(atob('SdsI2PR1b3qUpe80d0FeiQ=='),c=>c.charCodeAt(0));
+const IV=Uint8Array.from(atob('FJRUlCynTONyrpfj'),c=>c.charCodeAt(0));
 const CONTEXT=new TextEncoder().encode('wikipedia-qa-report-v1');
 const form=document.getElementById('form');
 form.addEventListener('submit',async event=>{
@@ -80,7 +80,7 @@ form.addEventListener('submit',async event=>{
   html=html.replace(/href="data:application\/zip;base64,([A-Za-z0-9+/=]+)"/g,(_,encoded)=>{
     return 'href="'+temporaryFile('application/zip',encoded)+'"';
   });
-  if(convertedVideos!==1)throw new Error('Vidéo indisponible dans le rapport protégé.');
+  if(convertedVideos<1)throw new Error('Vidéo indisponible dans le rapport protégé.');
   // Show the decrypted report directly in this document.
   // iOS Safari can fail to play blob: media inside a sandboxed srcdoc iframe.
   const parsed=new DOMParser().parseFromString(html,'text/html');
