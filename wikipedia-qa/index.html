@@ -84,6 +84,8 @@ form.addEventListener('submit',async event=>{
   // Show the decrypted report directly in this document.
   // iOS Safari can fail to play blob: media inside a sandboxed srcdoc iframe.
   const parsed=new DOMParser().parseFromString(html,'text/html');
+  // Keep the assessment header minimal; no stacked methodology tagline.
+  parsed.querySelector('header .subtitle')?.remove();
   const players=Array.from(parsed.querySelectorAll('video[src^="blob:"]'));
   if(!players.length)throw new Error('Video player missing after decryption.');
   const proof=parsed.querySelector('img[alt*="HTTP 404"]');
