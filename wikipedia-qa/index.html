@@ -81,9 +81,27 @@ form.addEventListener('submit',async event=>{
     return 'href="'+temporaryFile('application/zip',encoded)+'"';
   });
   if(convertedVideos!==1)throw new Error('Vidéo indisponible dans le rapport protégé.');
-  const frame=document.getElementById('viewer');
-  frame.srcdoc=html;document.getElementById('auth').hidden=true;frame.hidden=false;
-  document.body.style.display='block';document.body.style.background='white';
+  // Show the decrypted report directly in this document.
+  // iOS Safari can fail to play blob: media inside a sandboxed srcdoc iframe.
+  const parsed=new DOMParser().parseFromString(html,'text/html');
+  const player=parsed.querySelector('video[src^="blob:"]');
+  if(!player)throw new Error('Video player missing after decryption.');
+  player.setAttribute('playsinline','');
+  player.setAttribute('webkit-playsinline','');
+  player.setAttribute('preload','metadata');
+  const proof=parsed.querySelector('img[alt*="HTTP 404"]');
+  if(proof)player.setAttribute('poster',proof.getAttribute('src'));
+  const backup=parsed.createElement('p');
+  backup.className='mini video-backup';
+  const backupLink=parsed.createElement('a');
+  backupLink.href=player.getAttribute('src');
+  backupLink.download='BUG-01-early-media-tap.mp4';
+  backupLink.textContent='Download video (MP4)';
+  backup.appendChild(backupLink);
+  player.insertAdjacentElement('afterend',backup);
+  const full=document.importNode(parsed.documentElement,true);
+  document.replaceChild(full,document.documentElement);
+  window.scrollTo(0,0);
  } catch(e){
   error.textContent=e.name==='OperationError'?'Mot de passe incorrect, ou page à actualiser.':(e.message||'Déchiffrement impossible.');
  }finally{pass='';button.disabled=false;}
