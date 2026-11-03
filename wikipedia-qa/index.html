@@ -84,21 +84,47 @@ form.addEventListener('submit',async event=>{
   // Show the decrypted report directly in this document.
   // iOS Safari can fail to play blob: media inside a sandboxed srcdoc iframe.
   const parsed=new DOMParser().parseFromString(html,'text/html');
-  const player=parsed.querySelector('video[src^="blob:"]');
-  if(!player)throw new Error('Video player missing after decryption.');
-  player.setAttribute('playsinline','');
-  player.setAttribute('webkit-playsinline','');
-  player.setAttribute('preload','metadata');
+  const players=Array.from(parsed.querySelectorAll('video[src^="blob:"]'));
+  if(!players.length)throw new Error('Video player missing after decryption.');
   const proof=parsed.querySelector('img[alt*="HTTP 404"]');
-  if(proof)player.setAttribute('poster',proof.getAttribute('src'));
-  const backup=parsed.createElement('p');
-  backup.className='mini video-backup';
-  const backupLink=parsed.createElement('a');
-  backupLink.href=player.getAttribute('src');
-  backupLink.download='BUG-01-early-media-tap.mp4';
-  backupLink.textContent='Download video (MP4)';
-  backup.appendChild(backupLink);
-  player.insertAdjacentElement('afterend',backup);
+  for(const player of players){
+    player.setAttribute('playsinline','');
+    player.setAttribute('webkit-playsinline','');
+    player.setAttribute('preload','metadata');
+    const isDemo=player.getAttribute('aria-label')?.includes('Appium Cucumber');
+    if(!isDemo && proof)player.setAttribute('poster',proof.getAttribute('src'));
+    const backup=parsed.createElement('p');
+    backup.className='mini video-backup';
+    const backupLink=parsed.createElement('a');
+    backupLink.href=player.getAttribute('src');
+    backupLink.download=isDemo?'Wikipedia_Android_Automation_Run.mp4':'BUG-01-early-media-tap.mp4';
+    backupLink.textContent=isDemo?'Download test run (MP4)':'Download video (MP4)';
+    backup.appendChild(backupLink);
+    player.insertAdjacentElement('afterend',backup);
+    if(isDemo){
+      const demo=player.closest('.demo-evidence');
+      if(demo){
+        demo.id='automation-run-video';
+        const nav=parsed.querySelector('nav[aria-label="Sections"]');
+        if(nav){
+          const link=parsed.createElement('a');
+          link.href='#automation-run-video';
+          link.textContent='Watch test run';
+          nav.appendChild(link);
+        }
+        const automationIntro=parsed.querySelector('#automation > .intro');
+        if(automationIntro){
+          const jump=parsed.createElement('p');
+          jump.className='mini';
+          const anchor=parsed.createElement('a');
+          anchor.href='#automation-run-video';
+          anchor.textContent='▶ Watch the 5 automated tests (79 s)';
+          jump.appendChild(anchor);
+          automationIntro.insertAdjacentElement('afterend',jump);
+        }
+      }
+    }
+  }
   const full=document.importNode(parsed.documentElement,true);
   document.replaceChild(full,document.documentElement);
   window.scrollTo(0,0);
